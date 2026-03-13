@@ -1,0 +1,29 @@
+name: Sync Commands to Copilot Prompts
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - .claude/commands/**
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+    persistCredentials: true
+
+  - script: |
+      chmod +x scripts/sync-commands.sh
+      bash scripts/sync-commands.sh
+    displayName: Run sync script
+
+  - script: |
+      git config user.name "azure-pipelines[bot]"
+      git config user.email "azure-pipelines[bot]@users.noreply.visualstudio.com"
+      git add .github/prompts/
+      git diff --staged --quiet || git commit -m "chore: sync Copilot prompts from Claude commands [skip ci]"
+      git push origin HEAD:$(Build.SourceBranchName)
+    displayName: Commit generated prompts

@@ -81,3 +81,4 @@ Save as `docs/tdd-$ARGUMENTS.md` with sections:
 ## Error Handling
 - Missing PRD: infer requirements from feature name; flag all assumptions
 - Conflicting architectural approaches: present trade-offs in a comparison table
+- Input is a `.docx` PRD or Action Plan: do not process with this command — invoke the `techspec-generator` skill instead to produce a CoreStack-formatted `.docx` output

@@ -1,8 +1,8 @@
 {
-  "name": "ai-agent-team",
+  "name": "corestack-agent-team",
   "owner": {
-    "name": "AI Agent Team",
-    "url": "https://github.com/wshobson/agents"
+    "name": "CoreStack AI Agent Team",
+    "url": "https://github.com/CoreStack-Engg"
   },
   "metadata": {
     "description": "A 25-member AI agent team covering leadership, architecture, cloud, engineering, platform, and marketing — designed for Claude Code and GitHub Copilot",

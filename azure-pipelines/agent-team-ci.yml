@@ -1,0 +1,104 @@
+name: Validate Agent Team Files
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - .claude/agents/**
+      - .claude/commands/**
+      - .claude/skills/**
+      - plugins/**
+      - .mcp.json
+      - .claude/settings.json
+      - .claude-plugin/marketplace.json
+
+pr:
+  paths:
+    include:
+      - .claude/agents/**
+      - .claude/commands/**
+      - .claude/skills/**
+      - plugins/**
+      - .mcp.json
+      - .claude/settings.json
+      - .claude-plugin/marketplace.json
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - script: |
+      echo "Validating JSON files..."
+      for f in .mcp.json .claude/settings.json .claude-plugin/marketplace.json; do
+        if [ -f "$f" ]; then
+          python3 -m json.tool "$f" > /dev/null && echo "✓ $f" || (echo "✗ $f is invalid JSON" && exit 1)
+        fi
+      done
+    displayName: Validate JSON files
+
+  - script: |
+      echo "Validating agent frontmatter..."
+      EXIT_CODE=0
+      for f in $(find plugins -name "*.md" -path "*/agents/*") $(find .claude/agents -name "*.md" 2>/dev/null); do
+        if ! grep -q "^name:" "$f"; then
+          echo "✗ Missing 'name:' in $f"
+          EXIT_CODE=1
+        fi
+        if ! grep -q "^description:" "$f"; then
+          echo "✗ Missing 'description:' in $f"
+          EXIT_CODE=1
+        fi
+        if ! grep -q "^model:" "$f"; then
+          echo "✗ Missing 'model:' in $f"
+          EXIT_CODE=1
+        fi
+        echo "✓ $f"
+      done
+      exit $EXIT_CODE
+    displayName: Validate agent files have required frontmatter
+
+  - script: |
+      echo "Validating command descriptions..."
+      EXIT_CODE=0
+      for f in $(find .claude/commands plugins/orchestrators/commands -name "*.md" 2>/dev/null); do
+        if ! grep -q "^description:" "$f"; then
+          echo "✗ Missing 'description:' in $f"
+          EXIT_CODE=1
+        fi
+        echo "✓ $f"
+      done
+      exit $EXIT_CODE
+    displayName: Validate command files have descriptions
+
+  - script: |
+      echo "Checking hook executability..."
+      EXIT_CODE=0
+      for f in .claude/hooks/*.sh; do
+        if [ ! -x "$f" ]; then
+          echo "✗ Not executable: $f"
+          EXIT_CODE=1
+        else
+          echo "✓ $f"
+        fi
+      done
+      exit $EXIT_CODE
+    displayName: Check hook scripts are executable
+
+  - script: |
+      COUNT=$(find plugins -name "*.md" -path "*/agents/*" | wc -l | tr -d ' ')
+      echo "Total agent files: $COUNT"
+      if [ "$COUNT" -lt 20 ]; then
+        echo "Warning: Expected at least 20 agents, found $COUNT"
+      fi
+    displayName: Count agents
+
+  - script: |
+      chmod +x scripts/sync-commands.sh
+      bash scripts/sync-commands.sh
+      PROMPT_COUNT=$(ls .github/prompts/*.prompt.md 2>/dev/null | wc -l | tr -d ' ')
+      echo "Generated $PROMPT_COUNT Copilot prompts"
+    displayName: Run sync and verify prompts

@@ -30,12 +30,14 @@
         "HUNTER_API_KEY": "${HUNTER_API_KEY}"
       }
     },
-    "github": {
+    "azure-devops": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": ["-y", "@tiberriver256/mcp-server-azure-devops"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "AZURE_DEVOPS_ORG_URL": "${AZURE_DEVOPS_ORG_URL}",
+        "AZURE_DEVOPS_AUTH_TYPE": "pat",
+        "AZURE_PERSONAL_ACCESS_TOKEN": "${AZURE_PERSONAL_ACCESS_TOKEN}"
       }
     }
   }

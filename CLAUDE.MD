@@ -12,9 +12,9 @@ bash scripts/setup-symlinks.sh
 bash scripts/sync-commands.sh
 ```
 
-CI is handled by two GitHub Actions workflows:
-- `.github/workflows/agent-team-ci.yml` — validates agent definitions and hook scripts
-- `.github/workflows/sync-prompts.yml` — auto-syncs plugin commands to Copilot on push
+CI is handled by two Azure Pipelines workflows:
+- `azure-pipelines/agent-team-ci.yml` — validates agent definitions and hook scripts
+- `azure-pipelines/sync-prompts.yml` — auto-syncs plugin commands to Copilot on push
 
 No traditional build/test/lint pipeline exists — the project is configuration-as-code (Markdown agent definitions).
 
@@ -80,7 +80,7 @@ Invoke with `/plugin:agent-name` or let Claude auto-select based on task keyword
 
 ### MCP Tools
 
-Configured in `.mcp.json` — 5 tools with API keys via env vars: `firecrawl`, `perplexity`, `playwright`, `hunter`, `github`. See `.claude/CLAUDE.md` for which agents use which tools.
+Configured in `.mcp.json` — 5 tools with API keys via env vars: `firecrawl`, `perplexity`, `playwright`, `hunter`, `azure-devops`. See `.claude/CLAUDE.md` for which agents use which tools.
 
 ### Dual-Tool Compatibility
 

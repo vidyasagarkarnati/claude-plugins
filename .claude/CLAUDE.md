@@ -99,7 +99,7 @@ Unless the project specifies otherwise:
 - **Database:** MongoDB (primary), PostgreSQL (relational), Redis (cache)
 - **Cloud:** AWS (primary)
 - **IaC:** Terraform
-- **CI/CD:** GitHub Actions
+- **CI/CD:** Azure Pipelines
 - **Containers:** Docker + Kubernetes
 - **Observability:** Prometheus + Grafana + OpenTelemetry
 - **Auth:** OAuth 2.0 / OIDC
@@ -134,7 +134,7 @@ Unless the project specifies otherwise:
 | Firecrawl | PM, FinOps Expert |
 | Playwright | QA Engineer |
 | Hunter | Marketing/Content |
-| GitHub MCP | Release Manager, Engineering Manager (write); all agents (read) |
+| Azure DevOps MCP | Release Manager, Engineering Manager (write); all agents (read) |
 
 ---
 
