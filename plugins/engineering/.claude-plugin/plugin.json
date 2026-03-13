@@ -1,0 +1,8 @@
+{
+  "name": "engineering",
+  "version": "1.0.0",
+  "description": "Engineering agents: Full-Stack Developer, QA Engineer, MongoDB DBA, Prompt Engineer, Release Manager, Technical Writer, Test Coverage Agent",
+  "agents": ["agents/*.md"],
+  "skills": ["skills/*/SKILL.md"],
+  "commands": ["commands/*.md"]
+}

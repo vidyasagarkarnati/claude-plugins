@@ -1,0 +1,8 @@
+{
+  "name": "leadership",
+  "version": "1.0.0",
+  "description": "Leadership and product agents: CTO, VP Engineering, Director, Engineering Manager, Product Manager, Scrum Master",
+  "agents": ["agents/*.md"],
+  "skills": ["skills/*/SKILL.md"],
+  "commands": ["commands/*.md"]
+}

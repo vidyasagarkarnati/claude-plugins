@@ -1,0 +1,95 @@
+name: Validate Agent Team Files
+
+on:
+  pull_request:
+    paths:
+      - '.claude/agents/**'
+      - '.claude/commands/**'
+      - '.claude/skills/**'
+      - 'plugins/**'
+      - '.mcp.json'
+      - '.claude/settings.json'
+      - '.claude-plugin/marketplace.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          for f in .mcp.json .claude/settings.json .claude-plugin/marketplace.json; do
+            if [ -f "$f" ]; then
+              jq empty "$f" && echo "✓ $f" || (echo "✗ $f is invalid JSON" && exit 1)
+            fi
+          done
+
+      - name: Validate agent files have required frontmatter
+        run: |
+          echo "Validating agent frontmatter..."
+          EXIT_CODE=0
+          for f in $(find plugins -name "*.md" -path "*/agents/*") $(find .claude/agents -name "*.md" 2>/dev/null); do
+            # Check for name field
+            if ! grep -q "^name:" "$f"; then
+              echo "✗ Missing 'name:' in $f"
+              EXIT_CODE=1
+            fi
+            # Check for description field
+            if ! grep -q "^description:" "$f"; then
+              echo "✗ Missing 'description:' in $f"
+              EXIT_CODE=1
+            fi
+            # Check for model field
+            if ! grep -q "^model:" "$f"; then
+              echo "✗ Missing 'model:' in $f"
+              EXIT_CODE=1
+            fi
+            echo "✓ $f"
+          done
+          exit $EXIT_CODE
+
+      - name: Validate command files have descriptions
+        run: |
+          echo "Validating command descriptions..."
+          EXIT_CODE=0
+          for f in $(find .claude/commands plugins/orchestrators/commands -name "*.md" 2>/dev/null); do
+            if ! grep -q "^description:" "$f"; then
+              echo "✗ Missing 'description:' in $f"
+              EXIT_CODE=1
+            fi
+            echo "✓ $f"
+          done
+          exit $EXIT_CODE
+
+      - name: Check hook scripts are executable
+        run: |
+          echo "Checking hook executability..."
+          EXIT_CODE=0
+          for f in .claude/hooks/*.sh; do
+            if [ ! -x "$f" ]; then
+              echo "✗ Not executable: $f"
+              EXIT_CODE=1
+            else
+              echo "✓ $f"
+            fi
+          done
+          exit $EXIT_CODE
+
+      - name: Count agents
+        run: |
+          COUNT=$(find plugins -name "*.md" -path "*/agents/*" | wc -l | tr -d ' ')
+          echo "Total agent files: $COUNT"
+          if [ "$COUNT" -lt 20 ]; then
+            echo "Warning: Expected at least 20 agents, found $COUNT"
+          fi
+
+      - name: Run sync and verify prompts
+        run: |
+          chmod +x scripts/sync-commands.sh
+          bash scripts/sync-commands.sh
+          PROMPT_COUNT=$(ls .github/prompts/*.prompt.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Generated $PROMPT_COUNT Copilot prompts"

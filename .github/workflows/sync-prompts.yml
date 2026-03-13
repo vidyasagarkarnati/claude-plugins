@@ -1,0 +1,30 @@
+name: Sync Commands to Copilot Prompts
+
+on:
+  push:
+    paths:
+      - '.claude/commands/**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run sync script
+        run: |
+          chmod +x scripts/sync-commands.sh
+          bash scripts/sync-commands.sh
+
+      - name: Commit generated prompts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/prompts/
+          git diff --staged --quiet || git commit -m "chore: sync Copilot prompts from Claude commands [skip ci]"
+          git push

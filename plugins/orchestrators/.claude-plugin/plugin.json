@@ -1,0 +1,8 @@
+{
+  "name": "orchestrators",
+  "version": "1.0.0",
+  "description": "Multi-agent workflow orchestrators: prd-workflow, brainstorm, full-sdlc, code-review-flow, bug-fix-flow, deploy-flow, doc-flow, sprint-workflow",
+  "agents": [],
+  "skills": [],
+  "commands": ["commands/*.md"]
+}
