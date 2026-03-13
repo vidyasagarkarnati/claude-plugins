@@ -1,3 +1,93 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+# One-time setup after clone (creates symlinks for Copilot + Cursor compatibility)
+bash scripts/setup-symlinks.sh
+
+# Sync plugin commands → GitHub Copilot prompt format
+bash scripts/sync-commands.sh
+```
+
+CI is handled by two GitHub Actions workflows:
+- `.github/workflows/agent-team-ci.yml` — validates agent definitions and hook scripts
+- `.github/workflows/sync-prompts.yml` — auto-syncs plugin commands to Copilot on push
+
+No traditional build/test/lint pipeline exists — the project is configuration-as-code (Markdown agent definitions).
+
+## Architecture
+
+This repo implements a **25-agent AI engineering team** for Claude Code and GitHub Copilot. Agents cover the full software engineering lifecycle across 7 plugin domains.
+
+### Plugin Structure
+
+Each plugin lives in `plugins/{domain}/` and follows this layout:
+
+```
+plugins/{domain}/
+├── .claude-plugin/plugin.json   # Glob patterns registering agents, skills, commands
+├── agents/{name}.md             # Agent definition (frontmatter: name, model, color)
+├── skills/{name}/SKILL.md       # Reusable knowledge package
+└── commands/{name}.md           # Slash-command workflow (frontmatter: description, argument-hint)
+```
+
+**7 Plugins:** `leadership`, `architecture`, `cloud`, `engineering`, `platform`, `marketing`, `orchestrators`
+
+### Agents
+
+Agent files use YAML frontmatter (`name`, `model`, `description`) followed by sections: Core Mission, Capabilities, Behavioral Traits, Response Approach. The `description` field is the auto-activation trigger Claude reads to decide which agent to invoke.
+
+Models are assigned by complexity: `opus` for strategic/architectural agents, `sonnet` for engineering/product agents, `haiku` for lightweight coordination agents.
+
+Invoke with `/plugin:agent-name` or let Claude auto-select based on task keywords.
+
+### Commands & Orchestrators
+
+**12 commands** across domains (e.g., `/leadership:create-prd`, `/architecture:create-tdd`, `/engineering:code-review`).
+
+**8 orchestrators** in `plugins/orchestrators/commands/` chain multiple agents sequentially:
+- `prd-workflow` → PM → Tech Architect → Scrum Master
+- `full-sdlc` → Full-Stack Dev → QA → MongoDB DBA
+- `code-review-flow` → Tech Architect → Security Architect → Full-Stack Dev
+- `bug-fix-flow` → Full-Stack Dev → QA → Test Coverage Agent
+- `deploy-flow` → Cloud Architect → FinOps → QA
+- (plus `brainstorm`, `doc-flow`, `sprint-workflow`)
+
+### Hook System
+
+`.claude/settings.json` registers 8 automation hooks in `.claude/hooks/`:
+
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| `inject-context.sh` | SessionStart | Loads `.claude/memory/` into session context |
+| `security-check.sh` | PreToolUse[Bash] | Blocks dangerous shell patterns |
+| `audit-log.sh` | PostToolUse | Logs all tool invocations to `.claude/logs/` |
+| `validate-output.sh` | Stop | Checks for incomplete output signals |
+| `log-handoff.sh` + `notify-next-agent.sh` | SubagentStop | Tracks agent-to-agent handoffs |
+| `teammate-sync.sh` | TeammateIdle/TaskCompleted | Syncs sprint state across agents |
+
+### Memory System
+
+`.claude/memory/` holds three files agents read and update:
+- `project-state.md` — tech stack, services, integrations, known debt
+- `sprint-context.md` — active sprint, tickets, blockers, velocity (managed by Scrum Master agent)
+- `decisions.md` — ADR log (Michael Nygard format; every architectural decision gets an entry)
+
+`.claude/CLAUDE.md` is the shared agent memory foundation (agent roster, orchestrator chains, quality standards, MCP assignments). Do not confuse it with this file.
+
+### MCP Tools
+
+Configured in `.mcp.json` — 5 tools with API keys via env vars: `firecrawl`, `perplexity`, `playwright`, `hunter`, `github`. See `.claude/CLAUDE.md` for which agents use which tools.
+
+### Dual-Tool Compatibility
+
+`scripts/setup-symlinks.sh` creates symlinks so the same agent/command definitions work in GitHub Copilot Chat (`@workspace /command`) and Cursor. `scripts/sync-commands.sh` translates plugin commands to Copilot `.github/prompts/` format.
+
+---
+
 ## Workflow Orchestration
 
 ### 1. Plan Node Default
