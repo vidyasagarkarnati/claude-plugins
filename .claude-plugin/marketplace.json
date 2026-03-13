@@ -1,18 +1,16 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "corestack-agent-team",
+  "version": "1.0.0",
+  "description": "A 25-member AI agent team covering leadership, architecture, cloud, engineering, platform, and marketing — designed for Claude Code and GitHub Copilot",
   "owner": {
     "name": "CoreStack AI Agent Team",
-    "url": "https://github.com/CoreStack-Engg"
-  },
-  "metadata": {
-    "description": "A 25-member AI agent team covering leadership, architecture, cloud, engineering, platform, and marketing — designed for Claude Code and GitHub Copilot",
-    "version": "1.0.0"
+    "email": "vidyasagarkarnati@github.com"
   },
   "plugins": [
     {
       "name": "leadership",
       "source": "./plugins/leadership",
-      "manifest": "./plugins/leadership/.claude-plugin/plugin.json",
       "description": "Leadership agents: CTO, VP Engineering, Director of Engineering, Engineering Manager, Product Manager, Scrum Master",
       "version": "1.0.0",
       "category": "leadership"
@@ -20,7 +18,6 @@
     {
       "name": "architecture",
       "source": "./plugins/architecture",
-      "manifest": "./plugins/architecture/.claude-plugin/plugin.json",
       "description": "Architecture agents: Technical Architect, Security Architect, Data Architect, AI/ML Architect, Architecture Docs Agent",
       "version": "1.0.0",
       "category": "architecture"
@@ -28,7 +25,6 @@
     {
       "name": "cloud",
       "source": "./plugins/cloud",
-      "manifest": "./plugins/cloud/.claude-plugin/plugin.json",
       "description": "Cloud architect agents: AWS, Azure, GCP, OCI",
       "version": "1.0.0",
       "category": "infrastructure"
@@ -36,7 +32,6 @@
     {
       "name": "engineering",
       "source": "./plugins/engineering",
-      "manifest": "./plugins/engineering/.claude-plugin/plugin.json",
       "description": "Engineering agents: Full-Stack Developer, QA Engineer, MongoDB DBA, Prompt Engineer, Release Manager, Technical Writer, Test Coverage Agent",
       "version": "1.0.0",
       "category": "development"
@@ -44,7 +39,6 @@
     {
       "name": "platform",
       "source": "./plugins/platform",
-      "manifest": "./plugins/platform/.claude-plugin/plugin.json",
       "description": "Platform agents: Corestack Expert, FinOps Expert",
       "version": "1.0.0",
       "category": "platform"
@@ -52,7 +46,6 @@
     {
       "name": "marketing",
       "source": "./plugins/marketing",
-      "manifest": "./plugins/marketing/.claude-plugin/plugin.json",
       "description": "Marketing agents: Marketing/Content",
       "version": "1.0.0",
       "category": "marketing"
@@ -60,7 +53,6 @@
     {
       "name": "orchestrators",
       "source": "./plugins/orchestrators",
-      "manifest": "./plugins/orchestrators/.claude-plugin/plugin.json",
       "description": "Multi-agent workflow orchestrators for Plan, Brainstorm, SDLC, Code Review, Bug Fix, Deploy, Documentation, and Sprint modes",
       "version": "1.0.0",
       "category": "workflows"
@@ -68,7 +60,6 @@
     {
       "name": "azuredevops",
       "source": "./plugins/azuredevops",
-      "manifest": "./plugins/azuredevops/.claude-plugin/plugin.json",
       "description": "Azure DevOps project management: create work items, build Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports via Azure CLI",
       "version": "1.0.0",
       "category": "project-management"
