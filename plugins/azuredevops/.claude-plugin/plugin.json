@@ -1,6 +1,5 @@
 {
   "name": "azuredevops",
   "version": "1.0.0",
-  "agents": ["agents/*.md"],
-  "commands": ["commands/*.md"]
+  "description": "Azure DevOps project management: work items, Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports"
 }

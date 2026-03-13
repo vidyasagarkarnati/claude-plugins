@@ -1,8 +1,5 @@
 {
   "name": "marketing",
   "version": "1.0.0",
-  "description": "Marketing and content agent for blog posts, release announcements, and marketing copy",
-  "agents": ["agents/*.md"],
-  "skills": [],
-  "commands": []
+  "description": "Marketing and content agent for blog posts, release announcements, and marketing copy"
 }

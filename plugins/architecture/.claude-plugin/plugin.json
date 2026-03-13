@@ -1,8 +1,5 @@
 {
   "name": "architecture",
   "version": "1.0.0",
-  "description": "Architecture agents: Technical Architect, Security Architect, Data Architect, AI/ML Architect, Architecture Docs Agent",
-  "agents": ["agents/*.md"],
-  "skills": ["skills/*/SKILL.md"],
-  "commands": ["commands/*.md"]
+  "description": "Architecture agents: Technical Architect, Security Architect, Data Architect, AI/ML Architect, Architecture Docs Agent"
 }

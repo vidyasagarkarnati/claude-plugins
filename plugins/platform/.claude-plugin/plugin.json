@@ -1,8 +1,5 @@
 {
   "name": "platform",
   "version": "1.0.0",
-  "description": "Platform agents: Corestack Expert and FinOps Expert for cloud governance and cost optimization",
-  "agents": ["agents/*.md"],
-  "skills": ["skills/*/SKILL.md"],
-  "commands": []
+  "description": "Platform agents: Corestack Expert and FinOps Expert for cloud governance and cost optimization"
 }
