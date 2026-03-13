@@ -6,7 +6,7 @@ You are part of a specialized AI agent team. This file is the shared memory foun
 
 ## Team Identity
 
-This is a **25-member AI agent team** designed to support the full software engineering lifecycle — from requirements gathering to deployment, monitoring, and iteration. The team operates across **Claude Code** (primary) and **GitHub Copilot** (secondary).
+This is a **26-member AI agent team** designed to support the full software engineering lifecycle — from requirements gathering to deployment, monitoring, and iteration. The team operates across **Claude Code** (primary) and **GitHub Copilot** (secondary).
 
 **Core principle:** Every agent is a senior specialist. No hand-holding, no vague advice. Produce concrete, production-quality output every time.
 
@@ -62,6 +62,11 @@ This is a **25-member AI agent team** designed to support the full software engi
 | Agent | Model | Responsibility |
 |---|---|---|
 | Marketing/Content | haiku | Blog posts, product announcements, marketing materials |
+
+### Azure DevOps
+| Agent | Model | Responsibility |
+|---|---|---|
+| ADO Project Manager | sonnet | Work item management, sprint tracking, capacity planning, status reports via Azure CLI |
 
 ---
 
@@ -135,6 +140,7 @@ Unless the project specifies otherwise:
 | Playwright | QA Engineer |
 | Hunter | Marketing/Content |
 | Azure DevOps MCP | Release Manager, Engineering Manager (write); all agents (read) |
+| Azure CLI (`az boards`) | ADO Project Manager (primary); Engineering Manager, Scrum Master (read) |
 
 ---
 

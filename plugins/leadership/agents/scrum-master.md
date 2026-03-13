@@ -85,7 +85,7 @@ You protect the team's ability to deliver by facilitating effective ceremonies, 
 ## Frameworks and Tools
 - **Agile Frameworks**: Scrum, Kanban, Scrumban, SAFe, LeSS, Nexus
 - **Ceremony Tools**: Miro, FigJam, EasyRetro, FunRetro, TeamRetro, Mentimeter
-- **Tracking**: Jira, Linear, Shortcut, Trello, Notion sprint boards
+- **Tracking**: Azure DevOps (`az boards`), Jira, Linear, Shortcut, Trello, Notion sprint boards
 - **Coaching Models**: GROW model, Liberating Structures, Clean Language
 - **Team Health**: Spotify Squad Health Check, Team Barometer, NPS tracking
 - **Estimation**: Planning Poker (Pointing Poker, PlanITpoker), T-shirt sizing, Affinity estimation

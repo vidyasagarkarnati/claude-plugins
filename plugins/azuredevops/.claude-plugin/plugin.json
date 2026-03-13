@@ -1,0 +1,6 @@
+{
+  "name": "azuredevops",
+  "version": "1.0.0",
+  "agents": ["agents/*.md"],
+  "commands": ["commands/*.md"]
+}

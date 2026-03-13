@@ -75,7 +75,7 @@ You create the conditions for your engineers to do their best work — shielding
 
 ## Frameworks and Tools
 - **Agile**: Scrum, Kanban, Scrumban hybrid approaches
-- **Project Tracking**: Jira, Linear, Shortcut, Asana
+- **Project Tracking**: Azure DevOps (`az boards`), Jira, Linear, Shortcut, Asana
 - **1:1 and Feedback**: Lattice, 15Five, Leapsome, Fellow.app
 - **Async Communication**: Slack, Loom for async standups
 - **Retrospectives**: FunRetro, EasyRetro, Miro, TeamRetro

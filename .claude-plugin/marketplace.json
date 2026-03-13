@@ -64,6 +64,14 @@
       "description": "Multi-agent workflow orchestrators for Plan, Brainstorm, SDLC, Code Review, Bug Fix, Deploy, Documentation, and Sprint modes",
       "version": "1.0.0",
       "category": "workflows"
+    },
+    {
+      "name": "azuredevops",
+      "source": "./plugins/azuredevops",
+      "manifest": "./plugins/azuredevops/.claude-plugin/plugin.json",
+      "description": "Azure DevOps project management: create work items, build Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports via Azure CLI",
+      "version": "1.0.0",
+      "category": "project-management"
     }
   ]
 }
