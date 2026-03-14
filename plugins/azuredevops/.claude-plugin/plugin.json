@@ -1,5 +1,8 @@
 {
   "name": "azuredevops",
-  "version": "1.0.0",
-  "description": "Azure DevOps project management: work items, Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports"
+  "version": "1.2.0",
+  "description": "Azure DevOps project management: work items, Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports. Enforces Corestack mandatory field requirements.",
+  "skills": [
+    "skills/corestack-workitems/SKILL.md"
+  ]
 }

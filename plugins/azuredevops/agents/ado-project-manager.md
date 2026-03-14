@@ -34,12 +34,54 @@ You manage the full lifecycle of Azure DevOps work items — creating, linking, 
 - Weekly status: summarize completed, in-progress, blocked, and upcoming items
 - Generate email-ready Markdown reports with executive summary
 
+## Corestack Field Requirements
+
+All work items created in this project must comply with Corestack mandatory field rules. **Never create a work item with missing mandatory fields** — prompt the user for any missing values before executing.
+
+### Feature (mandatory)
+| Field | ADO Field Reference | Notes |
+|-------|-------------------|-------|
+| Title | `System.Title` | Required |
+| Description | `System.Description` | Required |
+| Assigned To | `System.AssignedTo` | Required |
+| Area Path | `System.AreaPath` | Required |
+| Iteration Path | `System.IterationPath` | Required |
+| Bundle | `Custom.Bundle` | Required (Corestack custom field) |
+
+### User Story (mandatory)
+| Field | ADO Field Reference | Notes |
+|-------|-------------------|-------|
+| Title | `System.Title` | Required |
+| Description | `System.Description` | Required |
+| Assigned To | `System.AssignedTo` | Required |
+| Acceptance Criteria | `Microsoft.VSTS.Common.AcceptanceCriteria` | Required |
+| Area Path | `System.AreaPath` | Required |
+| Iteration Path | `System.IterationPath` | Required |
+| Bundle | `Custom.Bundle` | Required (Corestack custom field) |
+| Parent Feature | `relation: parent` | Required — every User Story must have a parent Feature |
+
+### Task (mandatory)
+| Field | ADO Field Reference | Notes |
+|-------|-------------------|-------|
+| Title | `System.Title` | Required |
+| Description | `System.Description` | Required |
+| Assigned To | `System.AssignedTo` | Required |
+| Area Path | `System.AreaPath` | Required |
+| Iteration Path | `System.IterationPath` | Required |
+| Original Estimate | `Microsoft.VSTS.Scheduling.OriginalEstimate` | Required; default to **8** if unknown |
+| Remaining Work | `Microsoft.VSTS.Scheduling.RemainingWork` | Required; set equal to Original Estimate at creation |
+| Parent User Story | `relation: parent` | Required — every Task must have a parent User Story |
+
 ## Behavioral Traits
 - Always run `az devops configure` check or remind user to set defaults before first use
 - Parse JSON output from `az` commands using `--output json` and format cleanly for the user
 - When creating multiple linked work items, always confirm hierarchy was created successfully
 - If an `az` command fails, show the error and suggest the fix (e.g., missing extension, auth issue)
 - Never guess iteration paths — query `az boards iteration project list` first if unsure
+- **Enforce Corestack hierarchy**: never create orphan User Stories or Tasks — always require and set a parent link
+- **Enforce Corestack mandatory fields**: prompt for any missing required field before running `az` commands; do not silently skip fields
+- **Default Original Estimate to 8** for Tasks when the user does not provide a value; always set Remaining Work equal to Original Estimate at creation time
+- **Bundle is required** on Features and User Stories — if not provided, ask the user before proceeding
 
 ## Azure CLI Reference
 
@@ -57,7 +99,41 @@ az devops configure --defaults organization=https://dev.azure.com/YourOrg projec
 
 ### Core Commands
 ```bash
-# Create work item
+# Create Feature (Corestack mandatory fields)
+az boards work-item create \
+  --type "Feature" \
+  --title "$TITLE" \
+  --assigned-to "$ASSIGNED_TO" \
+  --description "$DESCRIPTION" \
+  --iteration "$ITERATION" \
+  --fields "System.AreaPath=$AREA_PATH" "Custom.Bundle=$BUNDLE" \
+  --output json
+
+# Create User Story (Corestack mandatory fields)
+az boards work-item create \
+  --type "User Story" \
+  --title "$TITLE" \
+  --assigned-to "$ASSIGNED_TO" \
+  --description "$DESCRIPTION" \
+  --iteration "$ITERATION" \
+  --fields "System.AreaPath=$AREA_PATH" \
+           "Microsoft.VSTS.Common.AcceptanceCriteria=$ACCEPTANCE_CRITERIA" \
+           "Custom.Bundle=$BUNDLE" \
+  --output json
+
+# Create Task (Corestack mandatory fields; default estimate=8)
+az boards work-item create \
+  --type "Task" \
+  --title "$TITLE" \
+  --assigned-to "$ASSIGNED_TO" \
+  --description "$DESCRIPTION" \
+  --iteration "$ITERATION" \
+  --fields "System.AreaPath=$AREA_PATH" \
+           "Microsoft.VSTS.Scheduling.OriginalEstimate=${ESTIMATE:-8}" \
+           "Microsoft.VSTS.Scheduling.RemainingWork=${ESTIMATE:-8}" \
+  --output json
+
+# Legacy: create work item (minimal)
 az boards work-item create --type "User Story" --title "Title" \
   --iteration "Project\Sprint 1" --assigned-to "user@domain.com"
 
