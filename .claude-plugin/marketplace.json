@@ -61,7 +61,7 @@
       "name": "azuredevops",
       "source": "./plugins/azuredevops",
       "description": "Azure DevOps project management: create work items, build Feature→Story→Task hierarchies, sprint status, capacity planning, and weekly status reports via Azure CLI",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "category": "project-management"
     }
   ]

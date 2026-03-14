@@ -72,6 +72,30 @@ steps:
     displayName: Validate plugin.json manifests
 
   - script: |
+      echo "Validating plugin version sync between plugin.json and marketplace.json..."
+      EXIT_CODE=0
+      for plugin_json in $(find plugins -name "plugin.json" -path "*/.claude-plugin/*"); do
+        plugin_dir=$(dirname "$(dirname "$plugin_json")")
+        plugin_name=$(basename "$plugin_dir")
+        plugin_ver=$(jq -r '.version // empty' "$plugin_json")
+        marketplace_ver=$(jq -r --arg name "$plugin_name" \
+          '.plugins[] | select(.name == $name) | .version // empty' \
+          .claude-plugin/marketplace.json)
+        if [ -z "$marketplace_ver" ]; then
+          echo "⚠ '$plugin_name' not found in marketplace.json — skipping version check"
+          continue
+        fi
+        if [ "$plugin_ver" != "$marketplace_ver" ]; then
+          echo "✗ Version mismatch for '$plugin_name': plugin.json=$plugin_ver  marketplace.json=$marketplace_ver"
+          EXIT_CODE=1
+        else
+          echo "✓ $plugin_name @ $plugin_ver"
+        fi
+      done
+      exit $EXIT_CODE
+    displayName: Validate plugin version sync with marketplace.json
+
+  - script: |
       echo "Validating agent frontmatter..."
       EXIT_CODE=0
       for f in $(find plugins -name "*.md" -path "*/agents/*") $(find .claude/agents -name "*.md" 2>/dev/null); do
