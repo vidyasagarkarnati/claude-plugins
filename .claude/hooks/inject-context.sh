@@ -34,6 +34,19 @@ if [ -f "$MEMORY_DIR/decisions.md" ]; then
   log "Loaded decisions.md"
 fi
 
+# Warn if memory files are empty/template only
+TEMPLATE_MARKER="<!-- Replace this"
+for f in project-state.md sprint-context.md decisions.md; do
+  fpath="$MEMORY_DIR/$f"
+  if [ -f "$fpath" ]; then
+    wc=$(wc -w < "$fpath")
+    if [ "$wc" -lt 20 ] || grep -q "$TEMPLATE_MARKER" "$fpath" 2>/dev/null; then
+      echo "WARNING: $f appears to be an unpopulated template. Run /project-memory-init to bootstrap agent memory." >&2
+      log "Memory file $f is unpopulated (${wc} words)"
+    fi
+  fi
+done
+
 if [ -n "$CONTEXT" ]; then
   echo "CONTEXT_INJECTED=true"
   log "Context injection complete"

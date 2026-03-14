@@ -141,6 +141,8 @@ Unless the project specifies otherwise:
 | Hunter | Marketing/Content |
 | Azure DevOps MCP | Release Manager, Engineering Manager (write); all agents (read) |
 | Azure CLI (`az boards`) | ADO Project Manager (primary); Engineering Manager, Scrum Master (read) |
+| context7 | Technical Architect, Full-Stack Developer, AI/ML Architect (live library docs) |
+| GitHub MCP | Release Manager, Engineering Manager, QA Engineer (PR/issue/Actions management) |
 
 ---
 

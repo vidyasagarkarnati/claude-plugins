@@ -24,6 +24,8 @@ This repo implements a **25-agent AI engineering team** for Claude Code and GitH
 
 ### Plugin Structure
 
+**Schema rules for `plugin.json`:** only 3 fields allowed — `name`, `version`, `description`. Version must match the plugin's entry in `marketplace.json` (enforced by PostToolUse hook).
+
 Each plugin lives in `plugins/{domain}/` and follows this layout:
 
 ```
@@ -58,13 +60,15 @@ Invoke with `/plugin:agent-name` or let Claude auto-select based on task keyword
 
 ### Hook System
 
-`.claude/settings.json` registers 8 automation hooks in `.claude/hooks/`:
+`.claude/settings.json` registers automation hooks in `.claude/hooks/`:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | `inject-context.sh` | SessionStart | Loads `.claude/memory/` into session context |
+| `prompt-enhance.sh` | UserPromptSubmit | Warns on vague prompts, detects agent references (non-blocking) |
 | `security-check.sh` | PreToolUse[Bash] | Blocks dangerous shell patterns |
 | `audit-log.sh` | PostToolUse | Logs all tool invocations to `.claude/logs/` |
+| `validate-plugin-json.sh` | PostToolUse[Write,Edit] | Validates plugin.json schema & version sync with marketplace.json |
 | `validate-output.sh` | Stop | Checks for incomplete output signals |
 | `log-handoff.sh` + `notify-next-agent.sh` | SubagentStop | Tracks agent-to-agent handoffs |
 | `teammate-sync.sh` | TeammateIdle/TaskCompleted | Syncs sprint state across agents |
