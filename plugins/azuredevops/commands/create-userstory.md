@@ -1,81 +1,58 @@
 ---
 description: "Create an Azure DevOps User Story linked to a required parent Feature (Corestack mandatory fields enforced)"
-argument-hint: "<title> --parent <feature-id> --assigned-to <email> --area-path <path> --bundle <value> --acceptance-criteria \"<ac>\" [--description <text>] [--iteration <path>] [--project <name>]"
+argument-hint: "--title <title> --description <text> --acceptance-criteria \"<ac>\" [--parent <feature-id>] [--assigned-to <email>] [--area-path <path>] [--bundle <value>] [--iteration <path>] [--project <name>]"
 ---
 
 # Create User Story
 
-Create a new User Story work item in Azure DevOps with all Corestack mandatory fields. A parent Feature is **required** — User Stories must not exist without a parent Feature.
+Create a new User Story work item in Azure DevOps with all Corestack mandatory fields. A parent Feature is **required** — User Stories must not exist without a parent Feature. If `--parent` is not provided, the script queries open Features and prompts you to select one.
 
-## Pre-flight Checks
-1. Confirm `az devops` extension is installed: `az extension list --query "[?name=='azure-devops']"`
-2. Check defaults are set: `az devops configure --list`
-3. If `--iteration` not provided, list available iterations and ask which to use:
-   ```bash
-   az boards iteration project list --output table
-   ```
+## Prerequisites
 
-## Phase 1: Parse Arguments
-Extract from `$ARGUMENTS`:
-- `TITLE` — **required**, the story title (everything before the first flag)
-- `--parent` — **required**, parent Feature work item ID (no orphan User Stories allowed)
-- `--assigned-to` — **required**, email/display name of assignee
-- `--area-path` — **required** (e.g., `MyProject\TeamA`)
-- `--bundle` — **required** (Corestack custom field value)
-- `--acceptance-criteria` — **required**, acceptance criteria for the story
-- `--description` — **required**, story description
-- `--iteration` — **required**, iteration path (e.g., `MyProject\Sprint 5`)
-- `--project` — optional, overrides default project
-
-## Phase 2: Validate Mandatory Fields
-Before running any `az` command, verify all required fields are present:
-- `TITLE` — error if empty
-- `PARENT` — **required**; if missing, query open Features and ask user to pick one:
-  ```bash
-  az boards query --wiql "SELECT [System.Id],[System.Title] FROM WorkItems WHERE [System.WorkItemType]='Feature' AND [System.State]<>'Closed'" --output table
-  ```
-  Do not create the User Story without a parent Feature.
-- `ASSIGNED_TO` — error if empty
-- `AREA_PATH` — error if empty
-- `BUNDLE` — error if empty
-- `ACCEPTANCE_CRITERIA` — error if empty
-- `DESCRIPTION` — error if empty
-- `ITERATION` — error if empty and no default set
-
-If any required field is missing, print:
-```
-ERROR: Missing required field(s): <field list>
-Usage: /azuredevops:create-userstory "<title>" --parent <feature-id> --assigned-to <email> --area-path <path> --bundle <value> --acceptance-criteria "<ac>" --description "<text>" --iteration <path>
-```
-Then stop.
-
-## Phase 3: Create the User Story
 ```bash
-az boards work-item create \
-  --type "User Story" \
+pip install azure-devops
+export AZURE_DEVOPS_ORG_URL="https://dev.azure.com/your-org"
+export AZURE_PERSONAL_ACCESS_TOKEN="your-pat"
+export AZURE_DEVOPS_PROJECT="YourProject"   # optional if --project is passed
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `--title` | Required | Story title |
+| `--description` | Required | Story description |
+| `--acceptance-criteria` | Required | Acceptance criteria (Given/When/Then) |
+| `--parent` | Optional | Parent Feature ID; script lists open Features if omitted |
+| `--assigned-to` | Optional | Assignee email; prompted if omitted |
+| `--area-path` | Optional | ADO area path; prompted if omitted |
+| `--iteration` | Optional | Iteration path; prompted if omitted |
+| `--bundle` | Optional | Corestack Bundle value; prompted if omitted |
+| `--project` | Optional | ADO project name (overrides env var) |
+
+## Step 1: Parse Arguments
+
+Extract all flags from `$ARGUMENTS`.
+
+## Step 2: Run the script
+
+```bash
+python3 scripts/ado_create_userstory.py \
   --title "$TITLE" \
-  --assigned-to "$ASSIGNED_TO" \
   --description "$DESCRIPTION" \
-  --iteration "$ITERATION" \
-  --fields "System.AreaPath=$AREA_PATH" \
-           "Microsoft.VSTS.Common.AcceptanceCriteria=$ACCEPTANCE_CRITERIA" \
-           "Custom.Bundle=$BUNDLE" \
-  [--project "$PROJECT"] \
-  --output json
+  --acceptance-criteria "$AC" \
+  [--parent "$PARENT_ID"] \
+  [--assigned-to "$ASSIGNED_TO"] \
+  [--area-path "$AREA_PATH"] \
+  [--iteration "$ITERATION"] \
+  [--bundle "$BUNDLE"] \
+  [--project "$PROJECT"]
 ```
-Capture the returned `id` as `$STORY_ID`.
 
-## Phase 4: Link to Parent Feature (always required)
-```bash
-az boards work-item relation add \
-  --id $STORY_ID \
-  --relation-type parent \
-  --target-id $PARENT_ID \
-  --output json
-```
-Confirm the relation was added successfully. If this step fails, warn the user and provide the manual command to re-link.
+If `--parent` is omitted, the script fetches the 20 most recent open Features and asks you to enter an ID. Corestack mandatory fields (`assigned-to`, `area-path`, `iteration`, `bundle`) are prompted interactively if not provided.
 
 ## Output Format
+
 ```
 User Story Created
 
@@ -91,16 +68,15 @@ User Story Created
 ```
 
 ## Error Handling
-- Missing mandatory fields: fail early with usage message before creating anything
-- Missing title: show usage and exit
-- `--parent` not provided: query open Features, display list, ask user to choose — do not create without parent
-- Invalid iteration path: run `az boards iteration project list` and show options
-- Parent Feature ID not found: show error and stop — do not create orphan User Story
-- Auth failure: remind user to run `az login` or set `AZURE_DEVOPS_EXT_PAT`
+
+- Missing `--title`, `--description`, or `--acceptance-criteria`: argparse exits with usage message
+- `--parent` not provided: queries open Features interactively — does not create without parent
+- Missing Corestack fields: prompted interactively
 
 ## Usage Examples
-```
-/azuredevops:create-userstory "Add login page" --parent 42 --assigned-to "dev@company.com" --area-path "MyProject\TeamA" --bundle "Q1-Release" --acceptance-criteria "User can log in with valid credentials" --description "As a user, I want to log in so I can access my account" --iteration "MyProject\Sprint 5"
 
-/azuredevops:create-userstory "User profile settings" --parent 10 --assigned-to "dev@company.com" --area-path "MyProject\TeamB" --bundle "Q2-Release" --acceptance-criteria "User can update name, email, and avatar" --description "Profile settings page with CRUD operations" --iteration "MyProject\Sprint 6"
+```
+/azuredevops:create-userstory --title "Add login page" --parent 42 --assigned-to "dev@company.com" --area-path "MyProject\TeamA" --bundle "Q1-Release" --acceptance-criteria "User can log in with valid credentials" --description "As a user, I want to log in so I can access my account" --iteration "MyProject\Sprint 5"
+
+/azuredevops:create-userstory --title "User profile settings" --description "Profile settings page" --acceptance-criteria "User can update name and email"
 ```

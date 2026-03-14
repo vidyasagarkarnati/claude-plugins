@@ -1,89 +1,51 @@
 ---
 description: "Generate a weekly Azure DevOps progress report ready to send as email or Teams message"
-argument-hint: "[--project <name>] [--sprint <iteration-path>] [--team <name>] [--week-start <YYYY-MM-DD>]"
+argument-hint: "[--project <name>] [--sprint <iteration-path>] [--team <name>] [--area-path <path>] [--week-start <YYYY-MM-DD>] [--milestone <name>] [--description <text>]"
 ---
 
 # Weekly Status Report
 
 Aggregate Azure DevOps work item activity for the past week and generate a formatted status email covering: completed work, in-progress items, blockers, and next week's focus.
 
-## Pre-flight Checks
-1. Check defaults: `az devops configure --list`
-2. Calculate `$WEEK_START` — if not provided, use last Monday's date
-3. Calculate `$WEEK_END` — today's date
+## Prerequisites
 
-## Phase 1: Parse Arguments
-- `--project` — optional project override
-- `--sprint` — iteration path; if omitted, use current sprint
-- `--team` — team name
-- `--week-start` — YYYY-MM-DD; default: most recent Monday
-
-## Phase 2: Resolve Current Sprint (if needed)
 ```bash
-az boards iteration team list \
-  --team "$TEAM" \
-  --timeframe Current \
-  --output json
+pip install azure-devops
+export AZURE_DEVOPS_ORG_URL="https://dev.azure.com/your-org"
+export AZURE_PERSONAL_ACCESS_TOKEN="your-pat"
+export AZURE_DEVOPS_PROJECT="YourProject"   # optional if --project is passed
 ```
 
-## Phase 3: Run WIQL Queries
+## Arguments
 
-**Completed this week** (state changed to Closed/Resolved between week-start and today):
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `--project` | Optional | ADO project name (overrides env var) |
+| `--sprint` | Optional | Iteration path; auto-resolves current sprint if omitted |
+| `--team` | Optional | Team name (used for sprint auto-resolution and board URL) |
+| `--area-path` | Optional | ADO area path filter (e.g. `Product_Mgmt\Core`); filters all queries to that team's area |
+| `--week-start` | Optional | YYYY-MM-DD; default: most recent Monday |
+| `--milestone` | Optional | Milestone name for subject line |
+| `--description` | Optional | Additional narrative appended after auto-generated executive summary |
+
+## Step 1: Parse Arguments
+
+Extract all flags from `$ARGUMENTS`. Default `--week-start` to last Monday if not provided.
+
+## Step 2: Run the script
+
 ```bash
-az boards query --wiql "
-  SELECT [System.Id], [System.Title], [System.WorkItemType], [System.AssignedTo],
-         [Microsoft.VSTS.Scheduling.StoryPoints], [Microsoft.VSTS.Common.ClosedDate]
-  FROM WorkItems
-  WHERE [System.IterationPath] UNDER '$SPRINT_PATH'
-    AND [System.State] IN ('Closed', 'Resolved')
-    AND [Microsoft.VSTS.Common.ClosedDate] >= '$WEEK_START'
-  ORDER BY [Microsoft.VSTS.Common.ClosedDate] DESC
-" --output json
+python3 scripts/ado_weekly_status.py \
+  [--project "$PROJECT"] \
+  [--sprint "$SPRINT"] \
+  [--team "$TEAM"] \
+  [--area-path "$AREA_PATH"] \
+  [--week-start "$WEEK_START"] \
+  [--milestone "$MILESTONE"] \
+  [--description "$DESCRIPTION"]
 ```
 
-**In Progress** (currently Active):
-```bash
-az boards query --wiql "
-  SELECT [System.Id], [System.Title], [System.WorkItemType], [System.AssignedTo],
-         [Microsoft.VSTS.Scheduling.StoryPoints], [System.ChangedDate]
-  FROM WorkItems
-  WHERE [System.IterationPath] UNDER '$SPRINT_PATH'
-    AND [System.State] = 'Active'
-  ORDER BY [System.AssignedTo]
-" --output json
-```
-
-**Blocked / At-Risk** (Active AND not changed in 3+ days, OR tagged blocked):
-```bash
-az boards query --wiql "
-  SELECT [System.Id], [System.Title], [System.AssignedTo], [System.ChangedDate], [System.Tags]
-  FROM WorkItems
-  WHERE [System.IterationPath] UNDER '$SPRINT_PATH'
-    AND [System.State] = 'Active'
-    AND (
-      [System.ChangedDate] <= '$THREE_DAYS_AGO'
-      OR [System.Tags] CONTAINS 'blocked'
-    )
-" --output json
-```
-
-**Upcoming** (New, not yet started):
-```bash
-az boards query --wiql "
-  SELECT [System.Id], [System.Title], [System.WorkItemType], [System.AssignedTo],
-         [Microsoft.VSTS.Scheduling.StoryPoints]
-  FROM WorkItems
-  WHERE [System.IterationPath] UNDER '$SPRINT_PATH'
-    AND [System.State] = 'New'
-  ORDER BY [System.AssignedTo]
-" --output json
-```
-
-## Phase 4: Compose the Report
-
-Calculate sprint completion %:
-- `$COMPLETED_COUNT` + `$TOTAL_COUNT`
-- `$COMPLETED_PTS` + `$TOTAL_PTS` (if story points exist)
+The script runs 8 WIQL queries (completed, in-progress, blocked, upcoming, all items, scope creep, capacity, features) and outputs a leadership-ready Markdown email.
 
 ## Output Format (email-ready Markdown)
 
@@ -99,56 +61,39 @@ Subject: Weekly Engineering Status — $SPRINT_NAME | Week of $WEEK_START
 
 ---
 
-### Completed This Week ($COMPLETED_COUNT items)
-| # | Title | Type | Owner | Points |
-|---|-------|------|-------|--------|
-| #1234 | Implement login API | User Story | alice@ | 5 |
-| #1235 | Add unit tests for auth | Task | bob@ | 2 |
+### Completed This Week ($N items)
+| #      | Title                                         | Type         | Owner                | Points |
+...
 
----
+### In Progress ($N items)
+| #      | Title                                         | Type         | Owner                | Last Updated    |
+...
 
-### In Progress ($IN_PROGRESS_COUNT items)
-| # | Title | Type | Owner | Last Updated |
-|---|-------|------|-------|-------------|
-| #1240 | Build checkout flow | User Story | carol@ | 2 days ago |
-| #1241 | Database migration | Task | dave@ | 1 day ago |
+### Blockers / At-Risk ($N items)
+| #      | Title                                         | Owner                | Stale      | Action Needed        |
+...
 
----
-
-### Blockers / At-Risk ($BLOCKED_COUNT items)
-| # | Title | Owner | Stale | Action Needed |
-|---|-------|-------|-------|---------------|
-| #1256 | Payment gateway integration | alice@ | 5 days | Needs 3rd-party API key |
-| #1267 | Design sign-off | Unassigned | — | Awaiting design review |
-
----
-
-### Coming Up Next Week
-| # | Title | Type | Owner |
-|---|-------|------|-------|
-| #1270 | Email notifications | User Story | bob@ |
-| #1271 | Error logging setup | Task | carol@ |
-
----
+### Coming Up Next Week ($N items)
+| #      | Title                                         | Type         | Owner                |
+...
 
 ### Summary
-- $COMPLETED_COUNT items completed this week ($COMPLETED_PTS pts)
-- $IN_PROGRESS_COUNT items in flight
-- $BLOCKED_COUNT items need attention
-- Sprint is **$HEALTH_STATUS** — on track to finish $SPRINT_END
-
----
-*Generated from Azure DevOps | $PROJECT | $SPRINT_NAME*
+- $N items completed this week ($PTS pts)
+- $N items in flight
+- $N items need attention
+- Sprint is **on track** — on track to finish $SPRINT_END
 ```
 
 ## Error Handling
-- No completed items this week: note "No items closed this week" — still show in-progress and blockers
-- Missing story points: show count-based metrics only
-- Week-start in the future: error and show correct date range
+
+- No completed items: shows "No items closed this week" — still shows in-progress and blockers
+- Missing story points: count-based metrics only
+- Sprint not found: falls back to querying the whole project iteration tree
 
 ## Usage Examples
+
 ```
 /azuredevops:weekly-status
-/azuredevops:weekly-status --team "Backend Team"
-/azuredevops:weekly-status --sprint "MyProject\Sprint 5" --week-start 2025-03-10
+/azuredevops:weekly-status --team "Core" --area-path "Product_Mgmt\Core"
+/azuredevops:weekly-status --sprint "Product_Mgmt\6.0\2601" --team "Core" --area-path "Product_Mgmt\Core" --milestone "Phase 1"
 ```

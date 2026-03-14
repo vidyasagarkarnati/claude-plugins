@@ -1,6 +1,6 @@
 ---
 description: "Bulk-create Azure DevOps Features, User Stories, and Tasks from PRD/TDD docs or an ad-hoc description — uses Python SDK, no MCP tokens, no per-item confirmation"
-argument-hint: "[<feature-name> | --adhoc] [--prd <path>] [--tdd <path>] --assigned-to <email> --area-path <path> --iteration <path> --bundle <value> [--project <name>]"
+argument-hint: "[<feature-name> | --adhoc] [--prd <path>] [--tdd <path>] [--assigned-to <email>] [--area-path <path>] [--iteration <path>] [--bundle <value>] [--project <name>]"
 ---
 
 # Import Work Items
@@ -29,10 +29,10 @@ export AZURE_DEVOPS_PROJECT="YourProject"   # optional if --project is passed
 | `--adhoc` | Mode B only | Switch to ad-hoc conversational mode |
 | `--prd <path>` | Optional | Explicit path to PRD file (overrides name-based lookup) |
 | `--tdd <path>` | Optional | Explicit path to TDD file (overrides name-based lookup) |
-| `--assigned-to` | Required | Default assignee for all items (e.g. `dev@company.com`) |
-| `--area-path` | Required | ADO area path (e.g. `MyProject\TeamA`) |
-| `--iteration` | Required | ADO iteration path (e.g. `MyProject\Sprint 5`) |
-| `--bundle` | Required | Corestack Bundle field value (e.g. `Q1-Release`) |
+| `--assigned-to` | Optional | Default assignee for all items (e.g. `dev@company.com`); prompted if omitted |
+| `--area-path` | Optional | ADO area path (e.g. `MyProject\TeamA`); prompted if omitted |
+| `--iteration` | Optional | ADO iteration path (e.g. `MyProject\Sprint 5`); prompted if omitted |
+| `--bundle` | Optional | Corestack Bundle field value (e.g. `Q1-Release`); prompted if omitted |
 | `--project` | Optional | ADO project name (overrides `AZURE_DEVOPS_PROJECT` env var) |
 
 ## Mode A — Document Mode
@@ -74,14 +74,16 @@ If the TDD has no Implementation Plan section, skip tasks (create Feature + Stor
 
 Assemble the manifest following this schema:
 
+Only include a `defaults` key if at least one of `--assigned-to`, `--area-path`, `--iteration`, or `--bundle` was provided. Omit any field not supplied — the script will prompt interactively for missing values.
+
 ```json
 {
   "project": "<project or env default>",
   "defaults": {
-    "assigned_to": "<--assigned-to value>",
-    "area_path": "<--area-path value>",
-    "iteration_path": "<--iteration value>",
-    "bundle": "<--bundle value>"
+    "assigned_to": "<--assigned-to value, if provided>",
+    "area_path": "<--area-path value, if provided>",
+    "iteration_path": "<--iteration value, if provided>",
+    "bundle": "<--bundle value, if provided>"
   },
   "features": [
     {
