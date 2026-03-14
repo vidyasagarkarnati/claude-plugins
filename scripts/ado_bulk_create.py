@@ -197,6 +197,27 @@ def main():
         print(f"ERROR: Could not load manifest: {e}")
         sys.exit(1)
 
+    # Prompt for any missing defaults interactively
+    manifest.setdefault("defaults", {})
+    defaults = manifest["defaults"]
+    required_defaults = {
+        "assigned_to":    "Assigned To (e.g. user@company.com)",
+        "area_path":      "Area Path (e.g. Product_Mgmt\\\\Core)",
+        "iteration_path": "Iteration Path (e.g. Product_Mgmt\\\\Product_Backlog)",
+        "bundle":         "Bundle (e.g. CORE)",
+    }
+    missing = [f for f in required_defaults if not defaults.get(f)]
+    if missing:
+        print("Some required defaults are not set in the manifest. Please provide them now:\n")
+        for field in missing:
+            while True:
+                value = input(f"  {required_defaults[field]}: ").strip()
+                if value:
+                    defaults[field] = value
+                    break
+                print("  Value cannot be empty.")
+        print()
+
     # Validate
     errors = validate_manifest(manifest)
     if errors:
