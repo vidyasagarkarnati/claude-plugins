@@ -1,0 +1,2 @@
+# One-time setup: pip install -r scripts/requirements.txt
+azure-devops>=7.1.0b4

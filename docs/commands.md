@@ -437,6 +437,152 @@ Output: Checkout module at 67%, generates 8 Jest tests covering: validation edge
 
 ---
 
+## Azure DevOps Plugin Commands
+
+### `/azuredevops:import-workitems`
+**Plugin:** azuredevops | **Argument:** `[<feature-name> | --adhoc] --assigned-to <email> --area-path <path> --iteration <path> --bundle <value>`
+
+Bulk-creates Azure DevOps Features, User Stories, and Tasks in one pass — no per-item confirmation. Uses the `azure-devops` Python SDK (no MCP tokens). Supports two modes:
+- **Document mode**: reads `docs/prd-<name>.md` + `docs/tdd-<name>.md`, extracts all work items
+- **Ad-hoc mode** (`--adhoc`): you describe what to create, Claude structures it and creates everything
+
+**Prerequisites (one-time):**
+```bash
+pip install -r scripts/requirements.txt
+export AZURE_DEVOPS_ORG_URL="https://dev.azure.com/your-org"
+export AZURE_PERSONAL_ACCESS_TOKEN="your-pat"
+```
+
+**Usage:**
+```bash
+# After prd-workflow — reads docs/prd-auth.md + docs/tdd-auth.md
+/azuredevops:import-workitems user-authentication \
+  --assigned-to dev@company.com \
+  --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 5" \
+  --bundle "Q1-Release"
+
+# Ad-hoc — describe features/stories/tasks conversationally
+/azuredevops:import-workitems --adhoc \
+  --assigned-to dev@company.com \
+  --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 5" \
+  --bundle "Q1-Release"
+
+# With explicit file paths
+/azuredevops:import-workitems --prd docs/prd-auth.md --tdd docs/tdd-auth-v2.md \
+  --assigned-to lead@company.com --area-path "MyProject\Platform" \
+  --iteration "MyProject\Sprint 6" --bundle "Q2-Release"
+```
+
+**Real-world scenarios:**
+
+*Scenario 1 — End of prd-workflow, create all work items at once:*
+```
+/orchestrators:prd-workflow "user authentication with OAuth2"
+# → produces docs/prd-user-authentication-with-oauth2.md + docs/tdd-user-authentication-with-oauth2.md
+
+/azuredevops:import-workitems user-authentication-with-oauth2 \
+  --assigned-to dev@company.com --area-path "MyProject\Auth" \
+  --iteration "MyProject\Sprint 5" --bundle "Q1-Release"
+```
+Output: Extracts 2 Features, 6 User Stories, 14 Tasks from the docs. Shows hierarchy for one-time confirmation. Python script creates all 22 items with correct parent links. Prints ADO IDs for each.
+
+*Scenario 2 — Ad-hoc bulk create (no docs needed):*
+```
+/azuredevops:import-workitems --adhoc \
+  --assigned-to dev@company.com --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 6" --bundle "Q2-Release"
+```
+Then describe: "Create a Notification System feature with 2 stories: Email Alerts (SMTP config, templates, retry logic tasks) and In-app Badges (websocket listener, badge UI tasks)."
+
+*Scenario 3 — Sprint planning, bulk-create 3 features at once:*
+Describe 3 features with their stories and tasks. Script creates the complete hierarchy in under a minute.
+
+**Output:**
+```
+Bulk Import Complete
+  Features created:  2
+  Stories created:   6
+  Tasks created:    14
+  Failed:            0
+
+Feature #1201: User Authentication
+  Story #1202: Login Page
+    Task #1205: Implement POST /auth/login  [6h]
+    Task #1206: Write unit tests            [4h]
+  Story #1203: Logout Flow
+    Task #1207: Invalidate JWT              [4h]
+...
+```
+
+---
+
+### `/azuredevops:create-feature`
+**Plugin:** azuredevops | **Argument:** `<FEATURE_TITLE> --assigned-to <email> --area-path <path> --bundle <value> --description <text> --iteration <path> [--stories "..."] [--tasks "..."]`
+
+Creates a Feature with optional User Stories and Tasks in a single hierarchical pass using `az boards`. Best for small, well-defined items when you already know the exact titles.
+
+**Usage:**
+```bash
+/azuredevops:create-feature "User Authentication" \
+  --assigned-to dev@company.com \
+  --area-path "MyProject\TeamA" \
+  --bundle "Q1-Release" \
+  --description "Implement full user authentication flow" \
+  --stories "Login, Signup, Forgot Password" \
+  --iteration "MyProject\Sprint 5"
+```
+
+---
+
+### `/azuredevops:create-userstory`
+**Plugin:** azuredevops | Single story creation with mandatory parent Feature link. Enforces all Corestack fields.
+
+### `/azuredevops:create-task`
+**Plugin:** azuredevops | Single task creation with mandatory parent User Story link. Sets `OriginalEstimate` and `RemainingWork`.
+
+---
+
+### `/azuredevops:sprint-status`
+**Plugin:** azuredevops | **Argument:** `[--sprint <path>] [--project <name>]`
+
+Shows current sprint burndown, completion %, blockers, and health score. Queries ADO via WIQL.
+
+**Usage:**
+```bash
+/azuredevops:sprint-status
+/azuredevops:sprint-status --sprint "MyProject\Sprint 5"
+```
+
+---
+
+### `/azuredevops:capacity-plan`
+**Plugin:** azuredevops | **Argument:** `[--sprint <path>] [--project <name>]`
+
+Shows team capacity vs remaining work per assignee. Flags over/under-allocated engineers.
+
+**Usage:**
+```bash
+/azuredevops:capacity-plan
+/azuredevops:capacity-plan --sprint "MyProject\Sprint 5"
+```
+
+---
+
+### `/azuredevops:weekly-status`
+**Plugin:** azuredevops | **Argument:** `[--sprint <path>] [--format email|teams]`
+
+Generates a weekly progress report (completed, in-progress, blocked, upcoming) ready to send as email or Teams message.
+
+**Usage:**
+```bash
+/azuredevops:weekly-status --format email
+/azuredevops:weekly-status --sprint "MyProject\Sprint 5" --format teams
+```
+
+---
+
 ## Quick Reference
 
 | Command | Plugin | What it produces |
@@ -453,3 +599,10 @@ Output: Checkout module at 67%, generates 8 Jest tests covering: validation edge
 | `/engineering:release-notes` | engineering | Formatted release notes |
 | `/engineering:document` | engineering | API docs / HOWTO / README / runbook |
 | `/engineering:coverage-audit` | engineering | Coverage report + generated tests |
+| `/azuredevops:import-workitems` | azuredevops | Bulk Feature→Story→Task creation from PRD/TDD or ad-hoc |
+| `/azuredevops:create-feature` | azuredevops | Single Feature + Stories + Tasks hierarchy |
+| `/azuredevops:create-userstory` | azuredevops | Single User Story with parent Feature link |
+| `/azuredevops:create-task` | azuredevops | Single Task with parent User Story link |
+| `/azuredevops:sprint-status` | azuredevops | Sprint burndown + completion % + blockers |
+| `/azuredevops:capacity-plan` | azuredevops | Team capacity vs remaining work by assignee |
+| `/azuredevops:weekly-status` | azuredevops | Weekly progress report (email/Teams format) |

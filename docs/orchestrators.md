@@ -35,6 +35,20 @@ You can monitor the chain via hook logs in `.claude/logs/`.
 /orchestrators:prd-workflow "self-serve billing portal with Stripe"
 ```
 
+**After this workflow — create ADO work items in bulk:**
+
+Once the PRD and TDD are generated, run `/azuredevops:import-workitems` to bulk-create all Features, User Stories, and Tasks from both documents in one pass (no per-item confirmation):
+
+```bash
+/azuredevops:import-workitems bulk-csv-import \
+  --assigned-to dev@company.com \
+  --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 5" \
+  --bundle "Q1-Release"
+```
+
+This reads `docs/prd-bulk-csv-import.md` and `docs/tdd-bulk-csv-import.md`, extracts all work items, shows you a one-time preview, then creates everything via the Python SDK.
+
 **Real-world scenarios:**
 
 *Scenario 1 — Customer-requested feature:*
@@ -43,6 +57,13 @@ Sales team has 5 customers asking for a CSV import. You have 20 minutes before s
 /orchestrators:prd-workflow "bulk CSV import: upload user data, async processing, validation report, email when done"
 ```
 Result: PM writes the PRD covering personas (IT admin, ops manager), acceptance criteria, success metrics. Technical Architect designs the async job queue, S3 staging, MongoDB job tracking, and API contract. Scrum Master breaks it into 8 sprint-ready stories with point estimates.
+
+Then immediately create all ADO work items:
+```
+/azuredevops:import-workitems bulk-csv-import \
+  --assigned-to dev@company.com --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 5" --bundle "Q1-Release"
+```
 
 *Scenario 2 — New product capability:*
 ```
@@ -337,6 +358,8 @@ Result: Scrum Master designs the planning agenda (2hr session), defines sprint h
 | Production deployment | `/orchestrators:deploy-flow` | Deploying to prod, want infra + cost + smoke test | ~10 min |
 | Polished documentation | `/orchestrators:doc-flow` | Need complete, audience-appropriate docs | ~8 min |
 | Sprint start | `/orchestrators:sprint-workflow` | Monday of new sprint, need committed plan | ~10 min |
+| ADO bulk import (from docs) | `/azuredevops:import-workitems` | After prd-workflow, create all ADO work items at once | ~2 min |
+| ADO bulk import (ad-hoc) | `/azuredevops:import-workitems --adhoc` | Describe features/stories/tasks conversationally | ~2 min |
 
 ---
 
@@ -344,13 +367,18 @@ Result: Scrum Master designs the planning agenda (2hr session), defines sprint h
 
 Orchestrators compose well. Common sequences:
 
-**Full feature lifecycle:**
+**Full feature lifecycle (with ADO work items):**
 ```
-/orchestrators:brainstorm "AI-powered search"        # → strategic decision
-/orchestrators:prd-workflow "semantic search MVP"    # → PRD + TDD + stories
-/orchestrators:full-sdlc "PROJ-301: search indexer"  # → implementation + tests
-/orchestrators:code-review-flow --pr 301             # → review + security + fixes
-/orchestrators:deploy-flow search-service --env prod # → deploy + cost + smoke tests
+/orchestrators:brainstorm "AI-powered search"           # → strategic decision
+/orchestrators:prd-workflow "semantic search MVP"       # → PRD + TDD + stories
+/azuredevops:import-workitems semantic-search-mvp \     # → all Features/Stories/Tasks in ADO
+  --assigned-to dev@company.com \
+  --area-path "MyProject\Search" \
+  --iteration "MyProject\Sprint 8" \
+  --bundle "Q2-Release"
+/orchestrators:full-sdlc "PROJ-301: search indexer"    # → implementation + tests
+/orchestrators:code-review-flow --pr 301                # → review + security + fixes
+/orchestrators:deploy-flow search-service --env prod    # → deploy + cost + smoke tests
 ```
 
 **Bug to resolution:**
@@ -358,4 +386,15 @@ Orchestrators compose well. Common sequences:
 /orchestrators:bug-fix-flow "duplicate orders bug"   # → fix + regression test
 /orchestrators:code-review-flow --files "src/orders" # → verify fix quality
 /orchestrators:deploy-flow orders-service --env prod  # → safe deploy
+```
+
+**Sprint kickoff with ADO sync:**
+```
+/orchestrators:sprint-workflow --sprint "Sprint 15" --capacity 45   # → committed sprint plan
+/azuredevops:import-workitems --adhoc \                              # → create any missing items
+  --assigned-to dev@company.com \
+  --area-path "MyProject\TeamA" \
+  --iteration "MyProject\Sprint 15" \
+  --bundle "Q2-Release"
+/azuredevops:sprint-status --sprint "MyProject\Sprint 15"           # → verify items landed correctly
 ```

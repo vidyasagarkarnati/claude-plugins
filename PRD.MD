@@ -89,8 +89,8 @@ https://github.com/wshobson/agents
 1. PR Review
 2. Agent to improve Code Coverage
 3. Agent to create and maintain documentation
-4. PRD Review
-5. TechSpec Creation and Review
+4. PRD Review and Create ADO Features and User Stories
+5. TechSpec Creation and Review and Create ADO Tasks and Subtasks
 6. Atonomous Bug Fixing
 7. Apply PR Review Comments
 8. Agent to Read Incident and Post Mortem Reports and Create Lessons Learned
@@ -98,3 +98,4 @@ https://github.com/wshobson/agents
 10. Agent to Create and Maintain HOWTO Guides
 11. Agent to build policy
 12. Agent for service Integration
+13. LinkedIn ghostwriter

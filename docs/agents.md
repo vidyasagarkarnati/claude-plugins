@@ -696,6 +696,37 @@ Blog posts, product announcements, marketing copy. Use to produce content quickl
 
 ---
 
+## Azure DevOps Plugin
+
+### ADO Project Manager
+**Model:** Sonnet | **Plugin:** `azuredevops`
+
+Work item lifecycle management, sprint tracking, and capacity planning. Auto-activates on ADO/Azure DevOps keywords. For bulk operations, pairs with `/azuredevops:import-workitems`.
+
+**When to use:**
+- Creating Features, User Stories, and Tasks (single items or bulk from PRD/TDD)
+- Checking sprint status and burndown
+- Generating weekly status reports
+- Capacity planning by assignee
+- Any Azure DevOps query or update
+
+**Real-world examples:**
+```
+"Create an ADO Feature for User Authentication with 3 stories: Login, Signup, Password Reset
+  --assigned-to dev@company.com --area-path MyProject\Auth --bundle Q1-Release --iteration MyProject\Sprint 5"
+
+"Show me the current sprint status for MyProject\Sprint 5"
+
+"Generate a weekly status report for this week's sprint as a Teams message"
+
+"Who is over-allocated in Sprint 5? Show capacity vs remaining work by engineer."
+
+"Create all work items from docs/prd-notifications.md and docs/tdd-notifications.md
+  --assigned-to dev@company.com --area-path MyProject\TeamA --iteration MyProject\Sprint 6 --bundle Q2-Release"
+```
+
+---
+
 ## Orchestrators Plugin
 
 See [orchestrators.md](orchestrators.md) for multi-agent workflow details.
@@ -731,3 +762,4 @@ See [orchestrators.md](orchestrators.md) for multi-agent workflow details.
 | Cloud governance | Corestack Expert | Haiku |
 | Cloud cost reduction | FinOps Expert | Haiku |
 | Blog / announcements | Marketing/Content | Haiku |
+| ADO work items / sprint tracking | ADO Project Manager | Sonnet |
