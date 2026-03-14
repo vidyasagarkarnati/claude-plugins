@@ -41,6 +41,37 @@ steps:
     displayName: Validate JSON files
 
   - script: |
+      echo "Validating plugin.json manifests..."
+      EXIT_CODE=0
+      for f in $(find plugins -name "plugin.json" -path "*/.claude-plugin/*"); do
+        # Valid JSON?
+        if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
+          echo "✗ $f is not valid JSON"
+          EXIT_CODE=1
+          continue
+        fi
+        # Required fields
+        for key in name version; do
+          VAL=$(jq -r --arg k "$key" '.[$k] // empty' "$f")
+          if [ -z "$VAL" ]; then
+            echo "✗ Missing required field '$key' in $f"
+            EXIT_CODE=1
+          fi
+        done
+        # Unknown fields (schema only allows: name, version, description)
+        UNKNOWN=$(jq -r 'keys[] | select(. != "name" and . != "version" and . != "description")' "$f" || true)
+        if [ -n "$UNKNOWN" ]; then
+          echo "✗ Unknown field(s) in $f: $UNKNOWN"
+          echo "  Allowed fields: name, version, description"
+          EXIT_CODE=1
+        else
+          echo "✓ $f"
+        fi
+      done
+      exit $EXIT_CODE
+    displayName: Validate plugin.json manifests
+
+  - script: |
       echo "Validating agent frontmatter..."
       EXIT_CODE=0
       for f in $(find plugins -name "*.md" -path "*/agents/*") $(find .claude/agents -name "*.md" 2>/dev/null); do

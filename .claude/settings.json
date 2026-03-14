@@ -77,6 +77,24 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/audit-log.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-plugin-json.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-plugin-json.sh"
+          }
+        ]
       }
     ],
     "Stop": [
